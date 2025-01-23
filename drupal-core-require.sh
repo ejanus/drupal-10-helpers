@@ -6,20 +6,24 @@
 # specified version.
 
 # Usage:
-#   drupal-require-core <drupal-core-version> [<project-directory>]
+#   drupal-require-core <drupal-core-version> [<project-directory>] [<command-prefix>]
 #     <drupal-core-version>    The version of Drupal core to update to (e.g., 10.4).
 #     <project-directory>      (Optional) Path to the project directory. If not 
 #                              provided, the current directory is assumed.
+#     <command-prefix>         (Optional) A prefix for commands (e.g., "lando", "ddev").
+#                              If not provided, commands will run directly.
 
 drupal-require-core() {
   if [ -z "$1" ]; then
-    echo "Usage: drupal-require-core <drupal-core-version> [<project-directory>]"
+    echo "Usage: drupal-require-core <drupal-core-version> [<project-directory>] [<command-prefix>]"
     echo "If <project-directory> is not provided, the current directory is assumed."
+    echo "If <command-prefix> is not provided, commands will run directly."
     return 1
   fi
 
   local version=$1
   local project_dir=${2:-$(pwd)} # Use current directory if no directory is provided
+  local command_prefix=${3:-""} # Use no prefix if none is provided
 
   if [ ! -d "$project_dir" ]; then
     echo "Error: Directory $project_dir does not exist."
@@ -54,10 +58,10 @@ drupal-require-core() {
 
   # Prepare inline commands
   local commands=(
-    "composer clear-cache && composer install"
-    "composer require $(echo "$dependencies" | xargs) --update-with-all-dependencies"
-    "composer require --dev $(echo "$dev_dependencies" | xargs) --update-with-all-dependencies"
-    "drush updb && drush cr && drush cex -y"
+    "$command_prefix composer clear-cache && $command_prefix composer install"
+    "$command_prefix composer require $(echo "$dependencies" | xargs) --update-with-all-dependencies"
+    "$command_prefix composer require --dev $(echo "$dev_dependencies" | xargs) --update-with-all-dependencies"
+    "$command_prefix drush updb && $command_prefix drush cr && $command_prefix drush cex -y"
   )
 
   echo "The following inline commands will be executed:"
